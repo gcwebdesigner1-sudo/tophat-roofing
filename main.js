@@ -3,9 +3,13 @@
   var nav = document.querySelector('.nav');
   var toggle = document.querySelector('.nav-toggle');
 
+  var heroEl = document.querySelector('.hero');
   function onScroll(){
     if(nav && !nav.classList.contains('always-solid')){
       nav.classList.toggle('solid', window.scrollY > 40);
+    }
+    if(heroEl){
+      document.body.classList.toggle('past-hero', window.scrollY > heroEl.offsetHeight * 0.7);
     }
   }
   onScroll();
@@ -65,10 +69,34 @@
     heroBg.style.transition = 'transform 1.4s cubic-bezier(.2,.7,.2,1)';
   }
 
+  // scrollspy: highlight the nav tab for the section in view
+  var spyLinks = document.querySelectorAll('.nav-links a[data-spy]');
+  if(spyLinks.length && 'IntersectionObserver' in window){
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(!e.isIntersecting) return;
+        spyLinks.forEach(function(a){ a.classList.toggle('active', a.dataset.spy === e.target.id); });
+      });
+    }, {rootMargin:'-45% 0px -50% 0px'});
+    spyLinks.forEach(function(a){
+      var s = document.getElementById(a.dataset.spy);
+      if(s) spy.observe(s);
+    });
+  }
+
+  // gallery: show 12 first, then everything
+  var gallery = document.querySelector('.gallery');
+  var moreBtn = document.querySelector('.more-btn');
+  if(moreBtn){ moreBtn.addEventListener('click', function(){ gallery.classList.remove('collapsed'); }); }
+  var revBtn = document.querySelector('.more-reviews');
+  if(revBtn){ revBtn.addEventListener('click', function(){ document.querySelector('.reviews').classList.remove('collapsed'); }); }
+
   // gallery filters + lightbox
   var items = Array.prototype.slice.call(document.querySelectorAll('.g-item'));
   document.querySelectorAll('.filters button').forEach(function(b){
     b.addEventListener('click', function(){
+      // picking a category shows every photo in it, not just the first 12
+      if(gallery && b.dataset.f !== 'all') gallery.classList.remove('collapsed');
       document.querySelectorAll('.filters button').forEach(function(x){ x.classList.remove('on'); });
       b.classList.add('on');
       var f = b.dataset.f;
